@@ -7,75 +7,90 @@
 #define S3  25
 #define OUT 33
 
-#define AD8232_OUTPUT_PIN  5    // Pino de leitura do sinal de batimento cardíaco (D5)
-#define AD8232_SDN_PIN     21   // Pino de controle de desligamento (D21)
+#define AD8232_OUTPUT_PIN  5
+#define AD8232_SDN_PIN     21
 
 // Configurações da Wi-Fi e servidor
-const char* ssid = "-";
-const char* password = "-";
-const char* serverUrl = "-";  // Troque para o IP do servidor Flask
+const char* ssid = "SEU_SSID";
+const char* password = "SUA_SENHA";
+const char* serverUrl = "http://SEU_SERVIDOR:5000/rgb";  // Ex: http://192.168.0.100:5000/rgb
+
+// Limites de calibração (ajuste de acordo com seu sensor)
+const int MIN_PULSE = 20;
+const int MAX_PULSE = 500;
 
 void setup() {
   Serial.begin(115200);
 
-  // Configuração dos pinos do TCS3200
   pinMode(S0, OUTPUT); digitalWrite(S0, HIGH);
   pinMode(S1, OUTPUT); digitalWrite(S1, LOW);
   pinMode(S2, OUTPUT);
   pinMode(S3, OUTPUT);
   pinMode(OUT, INPUT);
 
-  // Configuração do pino SDN para o AD8232
   pinMode(AD8232_SDN_PIN, OUTPUT);
-  digitalWrite(AD8232_SDN_PIN, HIGH);  // Ativa o AD8232 (desliga quando LOW)
+  digitalWrite(AD8232_SDN_PIN, HIGH);  // Liga o sensor de batimentos
 
-  // Conectar à rede Wi-Fi
   WiFi.begin(ssid, password);
-  Serial.print("Connecting to WiFi");
+  Serial.print("Conectando ao WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\nWiFi connected");
+  Serial.println("\nWiFi conectado");
+}
+
+// Função para mapear os pulsos para RGB (0 a 255)
+int mapRGB(unsigned int pulse) {
+  pulse = constrain(pulse, MIN_PULSE, MAX_PULSE);
+  return map(pulse, MIN_PULSE, MAX_PULSE, 255, 0);
 }
 
 void loop() {
-  // Leitura do sensor TCS3200 (RGB)
-  digitalWrite(S2, LOW); digitalWrite(S3, LOW);
-  unsigned int red = pulseIn(OUT, LOW);
+  // Leitura RED
+  digitalWrite(S2, LOW);
+  digitalWrite(S3, LOW);
+  unsigned int redPulse = pulseIn(OUT, LOW);
+  int red = mapRGB(redPulse);
 
-  digitalWrite(S2, HIGH); digitalWrite(S3, HIGH);
-  unsigned int green = pulseIn(OUT, LOW);
+  // Leitura GREEN
+  digitalWrite(S2, HIGH);
+  digitalWrite(S3, HIGH);
+  unsigned int greenPulse = pulseIn(OUT, LOW);
+  int green = mapRGB(greenPulse);
 
-  digitalWrite(S2, LOW); digitalWrite(S3, HIGH);
-  unsigned int blue = pulseIn(OUT, LOW);
+  // Leitura BLUE
+  digitalWrite(S2, LOW);
+  digitalWrite(S3, HIGH);
+  unsigned int bluePulse = pulseIn(OUT, LOW);
+  int blue = mapRGB(bluePulse);
 
-  // Leitura do sinal do AD8232 (batimento cardíaco)
-  int batimento = analogRead(AD8232_OUTPUT_PIN);  // Leitura do sinal analógico do AD8232
+  // Batimento cardíaco (valor analógico bruto)
+  int batimento = analogRead(AD8232_OUTPUT_PIN);
 
-  // Enviar os dados para o servidor se Wi-Fi estiver conectado
+  Serial.printf("RGB: (%d, %d, %d) | Batimento: %d\n", red, green, blue, batimento);
+
+  // Envia os dados
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
     http.begin(serverUrl);
     http.addHeader("Content-Type", "application/json");
 
-    // Montando o JSON com os dados dos sensores
-    String json = "{\"red\":" + String(red) + ",\"green\":" + String(green) + ",\"blue\":" + String(blue) +
+    String json = "{\"red\":" + String(red) +
+                  ",\"green\":" + String(green) +
+                  ",\"blue\":" + String(blue) +
                   ",\"batimento\":" + String(batimento) + "}";
 
     int httpResponseCode = http.POST(json);
-
     if (httpResponseCode > 0) {
       String response = http.getString();
-      Serial.println("Server response: " + response);
+      Serial.println("Resposta do servidor: " + response);
     } else {
-      Serial.println("Error in HTTP request");
+      Serial.println("Erro ao enviar HTTP POST");
     }
-
     http.end();
   }
 
-  delay(1000);  // Espera de 1 segundo entre as leituras
+  delay(1000);
 }
-
 
