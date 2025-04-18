@@ -9,7 +9,7 @@
 
 const char* ssid = "-";
 const char* password = "-";
-const char* serverUrl = "-";  // change to your server IP
+const char* serverUrl = "http://<ip-do-servidor>:5000/rgb";  // Troque pelo seu IP do servidor Flask
 
 void setup() {
   Serial.begin(115200);
@@ -39,6 +39,12 @@ void loop() {
   digitalWrite(S2, LOW); digitalWrite(S3, HIGH);
   unsigned int blue = pulseIn(OUT, LOW);
 
+  // Aqui você pode fazer algum ajuste de escala para garantir que os valores estejam entre 0 e 255
+  // Por exemplo, se o sensor retornar valores muito altos, você pode fazer algo assim:
+  red = map(red, 0, 1024, 0, 255);
+  green = map(green, 0, 1024, 0, 255);
+  blue = map(blue, 0, 1024, 0, 255);
+
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
     http.begin(serverUrl);
@@ -59,3 +65,4 @@ void loop() {
 
   delay(1000);
 }
+
