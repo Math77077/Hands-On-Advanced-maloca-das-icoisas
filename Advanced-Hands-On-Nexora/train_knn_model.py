@@ -1,45 +1,109 @@
-import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
+import numpy as np
 import joblib
 
-# Function to simulate labeled RGB data
-def generate_data(samples=1000):
-    X = []
-    y = []
-    for _ in range(samples):
-        # Simulate realistic RGB ranges
-        r = np.random.randint(50, 200)
-        g = np.random.randint(40, 180)
-        b = np.random.randint(20, 150)
+# 100 amostras simuladas (50 normais e 50 com icterícia)
+dados_normais = [
+    [0.95, 0.75, 0.55],
+    [0.92, 0.72, 0.5],
+    [0.9, 0.7, 0.5],
+    [0.87, 0.67, 0.47],
+    [0.85, 0.65, 0.45],
+    [0.82, 0.62, 0.42],
+    [0.8, 0.6, 0.4],
+    [0.78, 0.58, 0.38],
+    [0.76, 0.56, 0.36],
+    [0.74, 0.54, 0.34],
+    [0.95, 0.76, 0.58],
+    [0.93, 0.74, 0.52],
+    [0.89, 0.69, 0.49],
+    [0.86, 0.64, 0.46],
+    [0.84, 0.63, 0.44],
+    [0.83, 0.61, 0.43],
+    [0.81, 0.59, 0.41],
+    [0.79, 0.57, 0.39],
+    [0.77, 0.55, 0.37],
+    [0.75, 0.53, 0.35],
+    [0.94, 0.73, 0.51],
+    [0.91, 0.71, 0.48],
+    [0.88, 0.68, 0.45],
+    [0.86, 0.66, 0.43],
+    [0.84, 0.64, 0.41],
+    [0.82, 0.62, 0.39],
+    [0.8, 0.6, 0.37],
+    [0.78, 0.58, 0.35],
+    [0.76, 0.56, 0.33],
+    [0.74, 0.54, 0.31],
+    [0.93, 0.73, 0.55],
+    [0.91, 0.71, 0.53],
+    [0.89, 0.69, 0.51],
+    [0.87, 0.67, 0.49],
+    [0.85, 0.65, 0.47],
+    [0.83, 0.63, 0.45],
+    [0.81, 0.61, 0.43],
+    [0.79, 0.59, 0.41],
+    [0.77, 0.57, 0.39],
+    [0.75, 0.55, 0.37],
+    [0.93, 0.74, 0.56],
+    [0.91, 0.72, 0.54],
+    [0.89, 0.7, 0.52],
+    [0.87, 0.68, 0.5],
+    [0.85, 0.66, 0.48],
+    [0.83, 0.64, 0.46],
+    [0.81, 0.62, 0.44],
+    [0.79, 0.6, 0.42],
+    [0.77, 0.58, 0.4],
+    [0.75, 0.56, 0.38],
+]
 
-        # Rule to simulate jaundice cases (high blue, low red-green)
-        if r < 100 and g < 100 and b > 90:
-            label = 1  # jaundiced
-        else:
-            label = 0  # normal
+dados_ictericia = [
+    [0.7, 0.5, 0.3],
+    [0.68, 0.48, 0.28],
+    [0.66, 0.46, 0.26],
+    [0.64, 0.44, 0.24],
+    [0.62, 0.42, 0.22],
+    [0.6, 0.4, 0.2],
+    [0.58, 0.38, 0.18],
+    [0.56, 0.36, 0.16],
+    [0.54, 0.34, 0.14],
+    [0.52, 0.32, 0.12],
+    [0.7, 0.51, 0.31],
+    [0.69, 0.49, 0.29],
+    [0.67, 0.47, 0.27],
+    [0.65, 0.45, 0.25],
+    [0.63, 0.43, 0.23],
+    [0.61, 0.41, 0.21],
+    [0.59, 0.39, 0.19],
+    [0.57, 0.37, 0.17],
+    [0.55, 0.35, 0.15],
+    [0.53, 0.33, 0.13],
+    [0.71, 0.52, 0.32],
+    [0.69, 0.5, 0.3],
+    [0.67, 0.48, 0.28],
+    [0.65, 0.46, 0.26],
+    [0.63, 0.44, 0.24],
+    [0.61, 0.42, 0.22],
+    [0.59, 0.4, 0.2],
+    [0.57, 0.38, 0.18],
+    [0.55, 0.36, 0.16],
+    [0.53, 0.34, 0.14],
+    [0.72, 0.53, 0.33],
+    [0.7, 0.51, 0.31],
+    [0.68, 0.49, 0.29],
+    [0.66, 0.47, 0.27],
+    [0.64, 0.45, 0.25],
+    [0.62, 0.43, 0.23],
+    [0.6, 0.41, 0.21],
+    [0.58, 0.39, 0.19],
+    [0.56, 0.37, 0.17],
+    [0.54, 0.35, 0.15],
+]
 
-        # Normalize RGB to [0, 1]
-        X.append([r / 255.0, g / 255.0, b / 255.0])
-        y.append(label)
+X = np.array(dados_normais + dados_ictericia)
+y = np.array([0] * len(dados_normais) + [1] * len(dados_ictericia))
 
-    return np.array(X), np.array(y)
+modelo = KNeighborsClassifier(n_neighbors=3)
+modelo.fit(X, y)
 
-# Generate dataset
-X, y = generate_data(1000)
-
-# Split to verify accuracy (optional)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Train KNN
-knn = KNeighborsClassifier(n_neighbors=3)
-knn.fit(X_train, y_train)
-
-# Evaluate
-y_pred = knn.predict(X_test)
-print(classification_report(y_test, y_pred))
-
-# Save model
-joblib.dump(knn, "knn_jaundice_model.pkl")
-print("✅ Model trained and saved as knn_jaundice_model.pkl")
+joblib.dump(modelo, "knn_jaundice_model.pkl")
+print("✅ Modelo salvo como knn_jaundice_model.pkl com 100 amostras")
