@@ -44,17 +44,16 @@ A **icterícia neonatal** afeta a maioria dos recém-nascidos e pode, se não fo
 
 ---
 
-## 📁 Estrutura do Repositório
+## 📁 Como Executar o projeto
 
-📁 Arquivos Projeto/
-│
-├── app.py                         # Interface web com Streamlit (dashboard)
-├── server.py                      # Servidor Flask com lógica do modelo
-├── synthetic_data_generator.py    # Geração de dados sintéticos para treino
-├── dados_ictericia.csv            # Base de dados usada para treinamento
-├── esp32_tcs3200_ad8232.ino       # Código embarcado para ESP32 (sensores)
-│
-└── README.md                      # Documentação do projeto (nível raiz)
+Faça o download dos arquivos do projeto e instale as bibliotecas necessarias a partir do arquivo requirements.txt
+Ou [clique aqui para baixar o arquivo `requirements.txt`](./Arquivos%20Projeto/requirements.txt)
+Para isso, utilize o comando: 
+```bash
+pip install -r requirements.txt
+```
+Após isso, execute o arquivo .ino no seu ESP32, hospede o arquivo do servidor "server.py" e execute o arquivo da página web "app.py".
+Com isso, o projeto deve rodar perfeitamente!
 
 ---
 
@@ -62,6 +61,7 @@ A **icterícia neonatal** afeta a maioria dos recém-nascidos e pode, se não fo
 
 **Maloca das ICoisas** é uma iniciativa da **Universidade Federal de Roraima (UFRR)** com apoio da **Softex**, voltada para o desenvolvimento de soluções inovadoras com IoT, sistemas embarcados e tecnologias emergentes.  
 Este projeto foi desenvolvido na etapa **Hands-on Avançado**.
+
 
 ---
 
